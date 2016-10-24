@@ -1,4 +1,4 @@
-package homepage
+package productPage
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-frontend-router/lang"
-	"github.com/ONSdigital/dp-frontend-router/resolver"
 	"github.com/ONSdigital/go-ns/log"
 )
 
@@ -15,17 +14,11 @@ import (
 func Handler(rendererURL string) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		log.Debug("RendererURL "+rendererURL, nil)
-		b, err := resolver.Get("/")
-		if err != nil {
-			log.ErrorR(req, err, nil)
-			w.WriteHeader(500)
-			w.Write([]byte(err.Error()))
-			return
-		}
+		b := []byte(stubbedData)
 
 		rdr := bytes.NewReader(b)
 
-		rendererReq, err := http.NewRequest("POST", rendererURL+"/homepage", rdr)
+		rendererReq, err := http.NewRequest("POST", "/productPage", rdr)
 		if err != nil {
 			log.ErrorR(req, err, nil)
 			w.WriteHeader(500)

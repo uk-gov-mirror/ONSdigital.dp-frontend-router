@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-frontend-router/handlers/homepage"
+	"github.com/ONSdigital/dp-frontend-router/handlers/productPage"
 	"github.com/ONSdigital/go-ns/handlers/requestID"
 	"github.com/ONSdigital/go-ns/handlers/timeout"
 	"github.com/ONSdigital/go-ns/log"
@@ -55,6 +56,7 @@ func main() {
 	}
 
 	router.HandleFunc("/", homepage.Handler(cfg.RendererURL))
+	router.HandleFunc("/economy", productPage.Handler(cfg.RendererURL))
 	router.Handle("/{uri:.*}", createReverseProxy(babbageURL))
 
 	log.Debug("Starting server", log.Data{"bind_addr": cfg.BindAddr})
