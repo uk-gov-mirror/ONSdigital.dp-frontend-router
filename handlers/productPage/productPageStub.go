@@ -682,11 +682,21 @@ var stubbedData = `{
       "title": "People, population and community"
     }
   ],
-  "uri": "/",
+  "breadcrumb": [
+    {
+        "title": "Home",
+        "uri": "/"
+    },
+    {
+        "title": "Economy",
+        "uri": "/economy"
+    }
+  ],
+  "uri": "/economy",
   "type": "product_page",
   "metadata": {
-    "title": "Home",
-    "description": "thing",
+    "title": "Economy",
+    "description": "UK economic activity covering production, distribution, consumption and trade of goods and services. Individuals, businesses, organisations and governments all affect the development of the economy.",
     "keywords": [
       "statistics",
       "economy",
@@ -696,5 +706,38 @@ var stubbedData = `{
       "employment"
     ]
   },
-  "data": {}
+  "data": {
+    "highlightedPages": [
+      {
+        "title": "Economic review: October 2016",
+        "uri": "/economy/nationalaccounts/uksectoraccounts/articles/economicreview/october2016"
+      },
+      {
+        "title": "Assessment of the UK post-referendum economy: September 2016",
+        "uri": "/economy/nationalaccounts/uksectoraccounts/articles/assessmentoftheukpostreferendumeconomy/september2016"
+      }
+    ],
+    "children": [
+      {
+        "title": "Economic output and productivity",
+        "uri": "/economy/economicoutputandproductivity",
+        "description": "Manufacturing, production and services indices (measuring total economic output) and productivity (measuring efficiency, expressed as a ratio of output to input over a given period of time, for example output per person per hour)."
+      },
+      {
+        "title": "Environmental accounts",
+        "uri": "/economy/environmentalaccounts",
+        "description": "Environmental accounts show how the environment contributes to the economy (for example, through the extraction of raw materials), the impacts that the economy has on the environment (for example, energy consumption and air emissions), and how society responds to environmental issues (for example, through taxation and expenditure on environmental protection). This site also hosts the development of natural capital accounts, more information is available in the Methodology section."
+      },
+      {
+        "title": "Government, public sector and taxes",
+        "uri": "/economy/governmentpublicsectorandtaxes",
+        "description": "How the relationship between UK public sector income (including taxes) and expenditure (both on investment and on the day-to-day running of government) lead to changes in deficit and debt."
+      },
+      {
+        "title": "Gross Domestic Product (GDP)",
+        "uri": "/economy/grossdomesticproductgdp",
+        "description": "Preliminary, second and final estimates of GDP released over a quarter as more data becomes available. The final estimate is published in the Quarterly National Accounts. GDP is the main measure of UK economic growth based on the value of goods and services produced during a given period."
+      }
+    ]
+  }
 }`

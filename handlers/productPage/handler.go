@@ -18,7 +18,7 @@ func Handler(rendererURL string) func(w http.ResponseWriter, req *http.Request) 
 
 		rdr := bytes.NewReader(b)
 
-		rendererReq, err := http.NewRequest("POST", "/productPage", rdr)
+		rendererReq, err := http.NewRequest("POST", rendererURL+"/productPage", rdr)
 		if err != nil {
 			log.ErrorR(req, err, nil)
 			w.WriteHeader(500)
