@@ -118,6 +118,9 @@ func main() {
 	log.Debug("Starting server", log.Data{
 		"bind_addr":           config.BindAddr,
 		"babbage_url":         config.BabbageURL,
+		"mongo_url":           config.MongoURL,
+		"mongo_dB":            config.MongoDb,
+		"mongo_collection":    config.SearchStatsCollection,
 		"renderer_url":        config.RendererURL,
 		"resolver_url":        config.ResolverURL,
 		"homepage_ab_percent": config.HomepageABPercent,

@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"gopkg.in/mgo.v2"
+
 	"github.com/ONSdigital/dp-frontend-router/config"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/dgrijalva/jwt-go"
+	"time"
+	"encoding/json"
+	"bytes"
 )
 
 const pageIndexParam = "pageIndex"
@@ -25,6 +30,18 @@ type Service interface {
 
 // ServiceImpl - Implementation of the Analytics Service interface.
 type ServiceImpl struct{}
+
+type SearchData struct {
+	Url string `json:"url"`
+	Term string `json:"term"`
+	ListType string `json:"listType"`
+	PageIndex float64 `json:"pageIndex"`
+	LinkIndex float64 `json:"linkIndex"`
+	PageSize float64 `json:"pageSize"`
+	TimeStamp time.Time `json:"timeStamp"`
+	SortBy string `json:"sortBy"`
+	Model string `json:"model"`
+}
 
 // NewServiceImpl - Creates a new Analytics ServiceImpl.
 func NewServiceImpl() *ServiceImpl {
@@ -50,7 +67,7 @@ func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
 
 	log.DebugR(r, "token", log.Data{"token": token})
 
-	var url, term, listType string
+	var url, term, listType, sortBy, model string
 	var pageIndex, linkIndex, pageSize float64
 
 	var claims jwt.MapClaims
@@ -78,20 +95,92 @@ func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
 	if s, ok := claims["pageSize"].(float64); ok {
 		pageSize = s
 	}
+	if s, ok := claims["sortBy"].(string); ok {
+		sortBy = s
+	}
+
+	if sortBy == "ltr" {
+		if s, ok := claims["model"].(string); ok {
+			model = s
+		}
+	}
 
 	if len(url) == 0 {
 		log.ErrorR(r, errors.New("Failed to redirect to search results as parameter URL was missing."), nil)
 		return "", errors.New("400: URL is a mandatory parameter.")
 	}
 
-	// TODO implement.
+	searchData := SearchData{Url: url, Term: term, ListType: listType,
+		PageIndex: pageIndex, LinkIndex: linkIndex, PageSize: pageSize,
+		TimeStamp: time.Now(), SortBy: sortBy, Model: model}
+
+	if config.SearchStatsDatabase == "mongo" {
+		// Store the results in mongoDB
+		storeAnalyticsData(r, searchData)
+	} else if config.SearchStatsDatabase == "elastic" {
+		// Store the results in Elasticsearch
+		storeAnalyticsDataElasticsearch(r, searchData)
+	} else {
+		message := fmt.Sprintf("Unknown SearchStatsDatabase: %s", config.SearchStatsDatabase)
+		log.ErrorR(r, errors.New(message), nil)
+	}
+
+	// Log the data
 	log.DebugR(r, "CaptureAnalyticsData", log.Data{
-		urlParam:        url,
-		termParam:       term,
-		searchTypeParam: listType,
-		pageIndexParam:  pageIndex,
-		linkIndexParam:  linkIndex,
-		pageSizeParam:   pageSize,
+		urlParam:        searchData.Url,
+		termParam:       searchData.Term,
+		searchTypeParam: searchData.ListType,
+		pageIndexParam:  searchData.PageIndex,
+		linkIndexParam:  searchData.LinkIndex,
+		pageSizeParam:   searchData.PageSize,
+		timestampKey:    searchData.TimeStamp,
+		sortBy:			 searchData.SortBy,
+		model:			 searchData.Model,
 	})
 	return url, nil
+}
+
+func storeAnalyticsData(r *http.Request, searchData SearchData) {
+	session, err := mgo.Dial(config.MongoURL)
+	if err != nil {
+		log.ErrorR(r, err, nil)
+	}
+	defer session.Close()
+
+	c := session.DB(config.MongoDb).C(config.SearchStatsCollection)
+	err = c.Insert(&searchData)
+
+	if err != nil {
+		log.ErrorR(r, err, nil)
+	}
+
+	c.Database.Session.Close()
+}
+
+func storeAnalyticsDataElasticsearch(r *http.Request, searchData SearchData) {
+	uri := fmt.Sprintf("%s/%s/document/", config.ElasticsearchURL, config.SearchStatsCollection)
+
+	b, err := json.Marshal(searchData)
+	if err != nil {
+		log.ErrorR(r, err, nil)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, uri, bytes.NewBuffer(b))
+	req.Header.Set("Content-Type", "application/json")
+
+	if err != nil {
+		log.ErrorR(r, err, nil)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.ErrorR(r, err, nil)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		err := errors.New(fmt.Sprintf("Returned non 201 response: %d", resp.StatusCode))
+		log.ErrorR(r, err, nil)
+	}
 }

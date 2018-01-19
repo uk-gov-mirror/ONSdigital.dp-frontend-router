@@ -11,6 +11,19 @@ var ResolverURL = "http://localhost:20020"
 // The URL of the content renderer
 var RendererURL = "http://localhost:20010"
 
+// Which database to use - possible values are "mongo" or "elastic"
+var SearchStatsDatabase = "mongo"
+
+// The URL of mongoDB and which DB to use
+var MongoURL = "localhost:27017"
+var MongoDb = "local"
+
+// Collection name to use for searchstats
+var SearchStatsCollection = "searchstats"
+
+// The URL of Elasticsearch
+var ElasticsearchURL = "http://localhost:9200"
+
 // The percentage of requests to send to the new homepage
 var HomepageABPercent = 0
 
