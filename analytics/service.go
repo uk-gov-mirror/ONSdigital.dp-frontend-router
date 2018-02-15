@@ -15,6 +15,7 @@ import (
 	"bytes"
 )
 
+const redirUrlParam = "redirUrl"
 const pageIndexParam = "pageIndex"
 const pageSizeParam = "pageSize"
 const linkIndexParam = "linkIndex"
@@ -22,6 +23,8 @@ const urlParam = "url"
 const termParam = "term"
 const searchTypeParam = "type"
 const timestampKey = "timestamp"
+const sortByParam = "sortBy"
+const modelParam = "model"
 
 // Service - defines a Stats Service Interface
 type Service interface {
@@ -32,6 +35,7 @@ type Service interface {
 type ServiceImpl struct{}
 
 type SearchData struct {
+	RedirUrl string `json:"redirUrl"`
 	Url string `json:"url"`
 	Term string `json:"term"`
 	ListType string `json:"listType"`
@@ -50,6 +54,7 @@ func NewServiceImpl() *ServiceImpl {
 
 // CaptureAnalyticsData - captures the analytics values
 func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
+	redirUrl := r.URL.Path
 	data := r.URL.Query().Get(":data")
 
 	token, err := jwt.Parse(data, func(token *jwt.Token) (interface{}, error) {
@@ -110,7 +115,7 @@ func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
 		return "", errors.New("400: URL is a mandatory parameter.")
 	}
 
-	searchData := SearchData{Url: url, Term: term, ListType: listType,
+	searchData := SearchData{RedirUrl:redirUrl, Url: url, Term: term, ListType: listType,
 		PageIndex: pageIndex, LinkIndex: linkIndex, PageSize: pageSize,
 		TimeStamp: time.Now(), SortBy: sortBy, Model: model}
 
@@ -127,6 +132,7 @@ func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
 
 	// Log the data
 	log.DebugR(r, "CaptureAnalyticsData", log.Data{
+		redirUrlParam:   searchData.RedirUrl,
 		urlParam:        searchData.Url,
 		termParam:       searchData.Term,
 		searchTypeParam: searchData.ListType,
@@ -134,8 +140,8 @@ func (s *ServiceImpl) CaptureAnalyticsData(r *http.Request) (string, error) {
 		linkIndexParam:  searchData.LinkIndex,
 		pageSizeParam:   searchData.PageSize,
 		timestampKey:    searchData.TimeStamp,
-		sortBy:			 searchData.SortBy,
-		model:			 searchData.Model,
+		sortByParam:	 searchData.SortBy,
+		modelParam:		 searchData.Model,
 	})
 	return url, nil
 }
